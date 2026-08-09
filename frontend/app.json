@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "Vedaz Chat",
+    "slug": "vedaz-chat",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#f0f4ff"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.vedaz.chat"
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}
