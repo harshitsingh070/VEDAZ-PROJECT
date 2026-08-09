@@ -45,6 +45,10 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error('[server] failed to start:', error.message);
+  console.error('[server] failed to start:', error.message || String(error));
+  if (error.code) console.error('[server] error code:', error.code);
+  if (error.sqlMessage) console.error('[server] sql message:', error.sqlMessage);
+  if (error.errno) console.error('[server] errno:', error.errno);
+  if (error.stack) console.error('[server] stack:', error.stack);
   process.exit(1);
 });

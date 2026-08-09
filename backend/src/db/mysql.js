@@ -10,6 +10,7 @@ function createPool() {
 
   return mysql.createPool({
     ...options,
+    ssl: db.mysql.ssl ? { rejectUnauthorized: false } : undefined,
     waitForConnections: true,
     connectionLimit: 10,
     namedPlaceholders: true,
