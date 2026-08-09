@@ -8,10 +8,35 @@ const { createPool, initSchema, ping } = require('./db/mysql');
 const createApp = require('./app');
 const { initSocket } = require('./socket');
 
+const DB_RETRY_ATTEMPTS = 8;
+const DB_RETRY_DELAY_MS = 5000;
+
+function maskPassword(url) {
+  if (!url) return '(using fallback vars)';
+  return url.replace(/:\/\/[^@]+@/, '://***@');
+}
+
+async function connectWithRetry(pool) {
+  const target = maskPassword(config.db.mysql.url);
+  for (let attempt = 1; attempt <= DB_RETRY_ATTEMPTS; attempt += 1) {
+    try {
+      await ping(pool);
+      return;
+    } catch (error) {
+      const last = attempt === DB_RETRY_ATTEMPTS;
+      console.error(
+        `[db] connection attempt ${attempt}/${DB_RETRY_ATTEMPTS} failed (${target}): ${error.message || error}`
+      );
+      if (last) throw error;
+      await new Promise((resolve) => setTimeout(resolve, DB_RETRY_DELAY_MS));
+    }
+  }
+}
+
 async function buildRepository() {
   if (config.db.type === 'mysql') {
     const pool = createPool();
-    await ping(pool);
+    await connectWithRetry(pool);
     await initSchema(pool);
     console.log('[db] connected to MySQL, schema ready');
     return new MysqlMessageRepository(pool);
