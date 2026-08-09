@@ -1,9 +1,13 @@
 const { cleanUsername, cleanText } = require('../utils/validators');
 
 function registerHandlers(io, { messageService, userService }) {
-  messageService.on('message:created', (message) => {
-    const delivered = messageService.markDelivered(message.id);
-    io.emit('message:new', delivered);
+  messageService.on('message:created', async (message) => {
+    try {
+      const delivered = await messageService.markDelivered(message.id);
+      io.emit('message:new', delivered);
+    } catch (error) {
+      console.error('[socket] failed to broadcast message:', error.message);
+    }
   });
 
   messageService.on('message:read', (message) => {
@@ -24,9 +28,9 @@ function registerHandlers(io, { messageService, userService }) {
       io.emit('user:list', userService.online());
     });
 
-    socket.on('message:send', ({ senderId, senderName, text }) => {
+    socket.on('message:send', async ({ senderId, senderName, text }) => {
       try {
-        messageService.create({ senderId, senderName, text });
+        await messageService.create({ senderId, senderName, text });
       } catch (error) {
         socket.emit('message:error', { error: error.message });
       }
@@ -44,10 +48,14 @@ function registerHandlers(io, { messageService, userService }) {
       socket.broadcast.emit('typing', { username: user.username, isTyping: false });
     });
 
-    socket.on('message:read', ({ messageId }) => {
+    socket.on('message:read', async ({ messageId }) => {
       const { user } = socket.data;
       if (!user) return;
-      messageService.markRead(messageId, user.userId);
+      try {
+        await messageService.markRead(messageId, user.userId);
+      } catch (error) {
+        console.error('[socket] failed to mark message read:', error.message);
+      }
     });
 
     socket.on('disconnect', () => {

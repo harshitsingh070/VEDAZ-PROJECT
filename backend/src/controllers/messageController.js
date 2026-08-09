@@ -3,18 +3,18 @@ class MessageController {
     this.messageService = messageService;
   }
 
-  getAll = (req, res, next) => {
+  getAll = async (req, res, next) => {
     try {
-      res.json({ success: true, data: this.messageService.getAll() });
+      const messages = await this.messageService.getAll();
+      res.json({ success: true, data: messages });
     } catch (error) {
       next(error);
     }
   };
 
-  create = (req, res, next) => {
+  create = async (req, res, next) => {
     try {
-      const { senderId, senderName, text } = req.body || {};
-      const message = this.messageService.create({ senderId, senderName, text });
+      const message = await this.messageService.create(req.body || {});
       res.status(201).json({ success: true, data: message });
     } catch (error) {
       next(error);
