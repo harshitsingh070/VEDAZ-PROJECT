@@ -11,13 +11,14 @@ const { initSocket } = require('./socket');
 const DB_RETRY_ATTEMPTS = 8;
 const DB_RETRY_DELAY_MS = 5000;
 
-function maskPassword(url) {
-  if (!url) return '(using fallback vars)';
-  return url.replace(/:\/\/[^@]+@/, '://***@');
+function connectionTarget() {
+  const { url, host, port } = config.db.mysql;
+  if (url) return url.replace(/:\/\/[^@]+@/, '://***@');
+  return `${host}:${port} (fallback vars)`;
 }
 
 async function connectWithRetry(pool) {
-  const target = maskPassword(config.db.mysql.url);
+  const target = connectionTarget();
   for (let attempt = 1; attempt <= DB_RETRY_ATTEMPTS; attempt += 1) {
     try {
       await ping(pool);
